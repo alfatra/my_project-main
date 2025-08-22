@@ -1,7 +1,7 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
-import 'package:latlong2/latlong.dart';
+import 'package:latlong2/latlong.dart'; // Pastikan ini diimpor untuk Distance class
 import 'package:dio/dio.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:panorama/panorama.dart';
@@ -9,6 +9,7 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:flutter_compass/flutter_compass.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import 'visual_guidance_screen.dart'; // Ini sudah ada, bagus!
 
 // Pastikan Anda memiliki file 'splash_screen.dart' di folder lib/ Anda
 import 'splash_screen.dart';
@@ -46,8 +47,8 @@ class MyApp extends StatelessWidget {
             backgroundColor: Colors.teal[600],
             foregroundColor: Colors.white,
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-            textStyle: GoogleFonts.poppins(
-                fontSize: 14, fontWeight: FontWeight.w600),
+            textStyle:
+                GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w600),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),
@@ -65,7 +66,8 @@ class MyApp extends StatelessWidget {
         inputDecorationTheme: InputDecorationTheme(
           filled: true,
           fillColor: Colors.white,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
             borderSide: BorderSide(color: Colors.grey.shade300),
@@ -145,14 +147,18 @@ class _MatterportViewerScreenState extends State<MatterportViewerScreen> {
   }
 }
 
-
-// --- Data Tempat dengan Ikon ---
+// --- Data Tempat dengan Ikon (MODIFIED FOR VISUAL GUIDANCE) ---
 class Place {
   final String name;
   final LatLng location;
   final String panoramaPath;
   final String? description;
   final IconData icon;
+  // Ini adalah Map di dalam Map:
+  // Kunci pertama: Nama tempat asal (misalnya "ST. Maria")
+  // Kunci kedua: Nama tempat tujuan (misalnya "IGD")
+  // Nilai: Daftar jalur gambar untuk rute tersebut
+  final Map<String, Map<String, List<String>>>? visualGuidanceRoutes;
 
   Place({
     required this.name,
@@ -160,33 +166,103 @@ class Place {
     required this.panoramaPath,
     this.description,
     required this.icon,
+    this.visualGuidanceRoutes, // Tambahkan ini di constructor
   });
 }
 
+// Data 'places' (MODIFIED FOR VISUAL GUIDANCE)
 final Map<String, Place> places = {
   "ST. Maria": Place(
-    name: "ST. Maria",
-    location: const LatLng(-5.1439286, 119.4085484),
-    panoramaPath: "assets/panorama_demo.jpg",
-    icon: Icons.meeting_room_outlined,
-  ),
+      name: "ST. Maria",
+      location: const LatLng(-5.1439286, 119.4085484),
+      panoramaPath: "assets/panorama_demo.jpg",
+      icon: Icons.meeting_room_outlined,
+      visualGuidanceRoutes: {
+        "ST. Maria": {
+          // Asal: ST. Maria
+          "IGD": [
+            // Tujuan: IGD
+            "assets/guidance/st_maria_to_igd_01.webp",
+            "assets/guidance/st_maria_to_igd_02_belok_kanan.webp",
+            "assets/guidance/st_maria_to_igd_03_depan_igd.webp",
+          ],
+          "ST. Joseph": [
+            // Tujuan: ST. Joseph
+            "assets/guidance/st_maria_to_st_joseph_01.webp",
+            "assets/guidance/st_maria_to_st_joseph_02.webp",
+          ],
+        },
+        // Tambahkan rute lain yang BERAKHIR di ST. Maria dan dimulai dari tempat lain,
+        // misal jika Anda ingin panduan visual dari IGD ke ST. Maria:
+        // "IGD": {
+        //   "ST. Maria": [
+        //     "assets/guidance/igd_to_st_maria_01.webp",
+        //     "assets/guidance/igd_to_st_maria_02.webp",
+        //   ],
+        // },
+      }),
   "ST. Joseph": Place(
     name: "ST. Joseph",
     location: const LatLng(-5.1446786, 119.4090680),
     panoramaPath: "assets/panorama_st_joseph.jpg",
     icon: Icons.meeting_room_sharp,
+    visualGuidanceRoutes: {
+      "ST. Joseph": {
+        // Asal: ST. Joseph
+        "BERNADETH": [
+          // Tujuan: BERNADETH
+          "assets/guidance/st_joseph_to_bernadeth_01.webp",
+          "assets/guidance/st_joseph_to_bernadeth_02.webp",
+        ],
+        "ST. Maria": [
+          // Tujuan: ST. Maria
+          "assets/guidance/st_joseph_to_st_maria_01.webp",
+          "assets/guidance/st_joseph_to_st_maria_02.webp",
+        ],
+      },
+    },
   ),
   "IGD": Place(
     name: "IGD",
     location: const LatLng(-5.1437681, 119.4088918),
     panoramaPath: "assets/panorama_igd.jpg",
     icon: Icons.emergency_outlined,
+    visualGuidanceRoutes: {
+      "IGD": {
+        // Asal: IGD
+        "ST. Maria": [
+          // Tujuan: ST. Maria
+          "assets/guidance/igd_to_st_maria_01.webp",
+          "assets/guidance/igd_to_st_maria_02.webp",
+        ],
+        "BERNADETH": [
+          // Tujuan: BERNADETH
+          "assets/guidance/igd_to_bernadeth_01.webp",
+          "assets/guidance/igd_to_bernadeth_02.webp",
+        ],
+      },
+    },
   ),
   "BERNADETH": Place(
     name: "BERNADETH",
     location: const LatLng(-5.144139, 119.40939),
     panoramaPath: "assets/panorama_bernadeth.jpg",
     icon: Icons.king_bed_outlined,
+    visualGuidanceRoutes: {
+      "BERNADETH": {
+        // Asal: BERNADETH
+        "ST. Joseph": [
+          // Tujuan: ST. Joseph
+          "assets/guidance/bernadeth_to_st_joseph_01.webp",
+          "assets/guidance/bernadeth_to_st_joseph_02.webp",
+        ],
+        "IGD": [
+          // Tujuan: IGD
+          "assets/guidance/bernadeth_to_igd_01.webp",
+          "assets/guidance/bernadeth_to_igd_02.webp",
+        ],
+      },
+    },
   ),
 };
 
@@ -198,7 +274,8 @@ class QrScannerScreen extends StatefulWidget {
   State<QrScannerScreen> createState() => _QrScannerScreenState();
 }
 
-class _QrScannerScreenState extends State<QrScannerScreen> with SingleTickerProviderStateMixin {
+class _QrScannerScreenState extends State<QrScannerScreen>
+    with SingleTickerProviderStateMixin {
   final MobileScannerController cameraController = MobileScannerController();
   bool _isScanProcessed = false;
   late AnimationController _animationController;
@@ -248,7 +325,8 @@ class _QrScannerScreenState extends State<QrScannerScreen> with SingleTickerProv
               width: MediaQuery.of(context).size.width * 0.7,
               height: MediaQuery.of(context).size.width * 0.7,
               decoration: BoxDecoration(
-                border: Border.all(color: Colors.white.withOpacity(0.5), width: 2),
+                border:
+                    Border.all(color: Colors.white.withOpacity(0.5), width: 2),
                 borderRadius: BorderRadius.circular(24),
               ),
               child: Stack(
@@ -257,7 +335,8 @@ class _QrScannerScreenState extends State<QrScannerScreen> with SingleTickerProv
                     animation: _animationController,
                     builder: (context, child) {
                       return Positioned(
-                        top: _animationController.value * (MediaQuery.of(context).size.width * 0.7),
+                        top: _animationController.value *
+                            (MediaQuery.of(context).size.width * 0.7),
                         left: 0,
                         right: 0,
                         child: Container(
@@ -344,7 +423,7 @@ class PlaceSearchDelegate extends SearchDelegate<Place?> {
   }
 }
 
-// --- Layar Peta Navigasi Utama ---
+// --- Layar Peta Navigasi Utama (NavigationMapScreen) ---
 class NavigationMapScreen extends StatefulWidget {
   const NavigationMapScreen({super.key});
 
@@ -352,7 +431,8 @@ class NavigationMapScreen extends StatefulWidget {
   _NavigationMapScreenState createState() => _NavigationMapScreenState();
 }
 
-class _NavigationMapScreenState extends State<NavigationMapScreen> with TickerProviderStateMixin {
+class _NavigationMapScreenState extends State<NavigationMapScreen>
+    with TickerProviderStateMixin {
   final MapController _mapController = MapController();
   LatLng? userLocation;
   Place? destinationPlace;
@@ -387,19 +467,22 @@ class _NavigationMapScreenState extends State<NavigationMapScreen> with TickerPr
   void _startLocationTracking() async {
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
-      _showErrorDialog("Layanan Lokasi Mati", "Harap aktifkan layanan lokasi di perangkat Anda.");
+      _showErrorDialog("Layanan Lokasi Mati",
+          "Harap aktifkan layanan lokasi di perangkat Anda.");
       return;
     }
     LocationPermission permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied) {
-        _showErrorDialog("Izin Lokasi Ditolak", "Izin lokasi diperlukan untuk navigasi.");
+        _showErrorDialog(
+            "Izin Lokasi Ditolak", "Izin lokasi diperlukan untuk navigasi.");
         return;
       }
     }
     if (permission == LocationPermission.deniedForever) {
-      _showErrorDialog("Izin Lokasi Ditolak Permanen", "Anda perlu mengaktifkan izin lokasi dari pengaturan aplikasi.");
+      _showErrorDialog("Izin Lokasi Ditolak Permanen",
+          "Anda perlu mengaktifkan izin lokasi dari pengaturan aplikasi.");
       return;
     }
     Geolocator.getPositionStream(
@@ -431,16 +514,22 @@ class _NavigationMapScreenState extends State<NavigationMapScreen> with TickerPr
       _routeDuration = null;
     });
     final Dio dio = Dio();
-    const String apiKey = "5b3ce3597851110001cf624811f5bce45962419394fd091e8cd28637";
-    final String url = "https://api.openrouteservice.org/v2/directions/foot-walking?api_key=$apiKey&start=${userLocation!.longitude},${userLocation!.latitude}&end=${destinationPlace!.location.longitude},${destinationPlace!.location.latitude}";
+    const String apiKey =
+        "5b3ce3597851110001cf624811f5bce45962419394fd091e8cd28637";
+    final String url =
+        "https://api.openrouteservice.org/v2/directions/foot-walking?api_key=$apiKey&start=${userLocation!.longitude},${userLocation!.latitude}&end=${destinationPlace!.location.longitude},${destinationPlace!.location.latitude}";
     try {
       final response = await dio.get(url);
-      if (response.statusCode == 200 && response.data['features'] != null && response.data['features'].isNotEmpty) {
-        final List<dynamic> coordinates = response.data['features'][0]['geometry']['coordinates'];
+      if (response.statusCode == 200 &&
+          response.data['features'] != null &&
+          response.data['features'].isNotEmpty) {
+        final List<dynamic> coordinates =
+            response.data['features'][0]['geometry']['coordinates'];
         final summary = response.data['features'][0]['properties']['summary'];
         if (mounted) {
           setState(() {
-            routePoints = coordinates.map((coord) => LatLng(coord[1], coord[0])).toList();
+            routePoints =
+                coordinates.map((coord) => LatLng(coord[1], coord[0])).toList();
             _routeDistance = summary['distance'];
             _routeDuration = summary['duration'];
           });
@@ -452,11 +541,13 @@ class _NavigationMapScreenState extends State<NavigationMapScreen> with TickerPr
           }
         }
       } else {
-        throw Exception('Failed to load route: Status code ${response.statusCode}');
+        throw Exception(
+            'Failed to load route: Status code ${response.statusCode}');
       }
     } catch (e) {
       if (mounted) {
-        _showErrorSnackbar("Gagal mendapatkan rute. Periksa koneksi atau API Key.");
+        _showErrorSnackbar(
+            "Gagal mendapatkan rute. Periksa koneksi atau API Key.");
       }
     } finally {
       if (mounted) {
@@ -483,7 +574,8 @@ class _NavigationMapScreenState extends State<NavigationMapScreen> with TickerPr
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(title, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+        title: Text(title,
+            style: TextStyle(color: Theme.of(context).colorScheme.error)),
         content: Text(content),
         actions: <Widget>[
           TextButton(
@@ -540,7 +632,8 @@ class _NavigationMapScreenState extends State<NavigationMapScreen> with TickerPr
         if (foundPlace != null) {
           _setDestinationAndFetchRoute(foundPlace);
         } else {
-          _showErrorSnackbar("Error: Kode QR valid, tapi tempat tidak ditemukan.");
+          _showErrorSnackbar(
+              "Error: Kode QR valid, tapi tempat tidak ditemukan.");
         }
       } else {
         _showErrorSnackbar("Error: Format Kode QR tidak dikenali.");
@@ -567,6 +660,30 @@ class _NavigationMapScreenState extends State<NavigationMapScreen> with TickerPr
     });
     _mapController.move(place.location, 18.0);
     getRoute();
+  }
+
+  // Fungsi pembantu untuk menemukan tempat terdekat (NEW)
+  String? _findNearestPlaceKey(LatLng currentLatLng) {
+    double minDistance = double.infinity;
+    String? nearestPlaceKey;
+
+    places.forEach((key, place) {
+      final double distanceInMeters = const Distance().as(
+        LengthUnit.Meter,
+        currentLatLng,
+        place.location,
+      );
+      if (distanceInMeters < minDistance) {
+        minDistance = distanceInMeters;
+        nearestPlaceKey = key;
+      }
+    });
+    // Jika pengguna terlalu jauh dari tempat yang dikenal (misalnya, >100 meter)
+    if (minDistance > 100) {
+      // Anda bisa sesuaikan nilai ambang batas ini
+      return null;
+    }
+    return nearestPlaceKey;
   }
 
   @override
@@ -600,7 +717,8 @@ class _NavigationMapScreenState extends State<NavigationMapScreen> with TickerPr
             ),
             children: [
               TileLayer(
-                urlTemplate: "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
+                urlTemplate:
+                    "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
                 subdomains: const ['a', 'b', 'c', 'd'],
                 userAgentPackageName: 'com.stella.navigasi',
               ),
@@ -623,7 +741,8 @@ class _NavigationMapScreenState extends State<NavigationMapScreen> with TickerPr
                       point: userLocation!,
                       width: 80,
                       height: 80,
-                      child: UserLocationMarker(controller: _userMarkerController),
+                      child:
+                          UserLocationMarker(controller: _userMarkerController),
                     ),
                   ...places.entries.map((entry) {
                     bool isDestination = destinationPlace == entry.value;
@@ -703,7 +822,9 @@ class _NavigationMapScreenState extends State<NavigationMapScreen> with TickerPr
                 alignment: WrapAlignment.center,
                 children: [
                   ElevatedButton.icon(
-                    onPressed: (userLocation != null && destinationPlace != null && !_isLoadingRoute)
+                    onPressed: (userLocation != null &&
+                            destinationPlace != null &&
+                            !_isLoadingRoute)
                         ? () => getRoute()
                         : null,
                     icon: const Icon(Icons.route_outlined, size: 18),
@@ -713,16 +834,19 @@ class _NavigationMapScreenState extends State<NavigationMapScreen> with TickerPr
                     onPressed: _navigateToQrScanner,
                     icon: const Icon(Icons.qr_code_scanner, size: 18),
                     label: const Text("Pindai"),
-                    style: ElevatedButton.styleFrom(backgroundColor: Colors.indigoAccent),
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.indigoAccent),
                   ),
                   ElevatedButton.icon(
                     onPressed: () {
                       if (destinationPlace == null) {
-                        _showErrorSnackbar("Pilih tujuan dahulu untuk panduan AR.");
+                        _showErrorSnackbar(
+                            "Pilih tujuan dahulu untuk panduan AR.");
                         return;
                       }
                       if (userLocation == null) {
-                        _showErrorSnackbar("Lokasi Anda belum ada untuk fitur AR.");
+                        _showErrorSnackbar(
+                            "Lokasi Anda belum ada untuk fitur AR.");
                         return;
                       }
                       Navigator.push(
@@ -738,22 +862,82 @@ class _NavigationMapScreenState extends State<NavigationMapScreen> with TickerPr
                     },
                     icon: const Icon(Icons.explore_outlined, size: 18),
                     label: const Text("AR"),
-                    style: ElevatedButton.styleFrom(backgroundColor: Colors.deepPurple),
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.deepPurple),
                   ),
                   ElevatedButton.icon(
                     onPressed: () {
-                      const String matterportUrl = "https://my.matterport.com/show/?m=JGPnGQ6hosj";
+                      const String matterportUrl =
+                          "https://my.matterport.com/show/?m=JGPnGQ6hosj";
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => const MatterportViewerScreen(tourUrl: matterportUrl),
+                          builder: (_) => const MatterportViewerScreen(
+                              tourUrl: matterportUrl),
                         ),
                       );
                     },
                     icon: const Icon(Icons.view_in_ar_outlined, size: 18),
                     label: const Text("Tur Virtual"),
-                    style: ElevatedButton.styleFrom(backgroundColor: Colors.blue[800]),
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue[800]),
                   ),
+                  // START: Tombol Panduan Visual Baru
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      if (userLocation == null) {
+                        _showErrorSnackbar("Lokasi Anda belum ditemukan.");
+                        return;
+                      }
+                      if (destinationPlace == null) {
+                        _showErrorSnackbar("Pilih tujuan terlebih dahulu.");
+                        return;
+                      }
+
+                      final String? startPlaceKey =
+                          _findNearestPlaceKey(userLocation!);
+                      if (startPlaceKey == null) {
+                        _showErrorSnackbar(
+                            "Anda terlalu jauh dari lokasi yang dikenali untuk panduan visual.");
+                        return;
+                      }
+
+                      final Place? startPlace = places[startPlaceKey];
+                      final Place? destPlace = destinationPlace;
+
+                      if (startPlace == null || destPlace == null) {
+                        _showErrorSnackbar(
+                            "Terjadi kesalahan dalam menentukan lokasi awal atau tujuan.");
+                        return;
+                      }
+
+                      // Ambil daftar gambar panduan dari tempat asal ke tempat tujuan
+                      final List<String>? guidanceImages =
+                          startPlace.visualGuidanceRoutes?[startPlace.name]
+                              ?[destPlace.name];
+
+                      if (guidanceImages != null && guidanceImages.isNotEmpty) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => VisualGuidanceScreen(
+                              imagePaths: guidanceImages,
+                              destinationName: destPlace.name,
+                              startLocationName: startPlace.name,
+                            ),
+                          ),
+                        );
+                      } else {
+                        _showErrorSnackbar(
+                            "Panduan visual tidak tersedia untuk rute dari ${startPlace.name} ke ${destPlace.name}.");
+                      }
+                    },
+                    icon: const Icon(Icons.image_outlined, size: 18),
+                    label: const Text("Panduan Visual"),
+                    style:
+                        ElevatedButton.styleFrom(backgroundColor: Colors.brown),
+                  ),
+                  // END: Tombol Panduan Visual Baru
                 ],
               ),
             ],
@@ -782,7 +966,8 @@ class _NavigationMapScreenState extends State<NavigationMapScreen> with TickerPr
                   const SizedBox(width: 8),
                   Text(
                     _formatDistance(_routeDistance),
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold, fontSize: 16),
                   ),
                 ],
               ),
@@ -792,7 +977,8 @@ class _NavigationMapScreenState extends State<NavigationMapScreen> with TickerPr
                   const SizedBox(width: 8),
                   Text(
                     _formatDuration(_routeDuration),
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold, fontSize: 16),
                   ),
                 ],
               ),
@@ -813,8 +999,7 @@ class UserLocationMarker extends StatelessWidget {
   Widget build(BuildContext context) {
     return ScaleTransition(
       scale: Tween(begin: 1.0, end: 0.8).animate(
-        CurvedAnimation(parent: controller, curve: Curves.easeInOut)
-      ),
+          CurvedAnimation(parent: controller, curve: Curves.easeInOut)),
       child: Container(
         decoration: BoxDecoration(
           shape: BoxShape.circle,
@@ -960,7 +1145,8 @@ class _PanoramaViewerScreenState extends State<PanoramaViewerScreen> {
               widget.currentPlace.panoramaPath,
               fit: BoxFit.cover,
               errorBuilder: (context, error, stackTrace) => Center(
-                child: Text("Gagal memuat panorama: ${widget.currentPlace.panoramaPath}"),
+                child: Text(
+                    "Gagal memuat panorama: ${widget.currentPlace.panoramaPath}"),
               ),
             ),
           ),
@@ -992,14 +1178,17 @@ class _PanoramaViewerScreenState extends State<PanoramaViewerScreen> {
             right: 0,
             child: Center(
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.7),
-                  borderRadius: BorderRadius.circular(10)
-                ),
+                    color: Colors.black.withOpacity(0.7),
+                    borderRadius: BorderRadius.circular(10)),
                 child: Text(
                   'Arah Ponsel: ${_deviceHeading?.toStringAsFixed(0)}° | Arah Tujuan: ${_bearingToDestination?.toStringAsFixed(0)}°',
-                  style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold),
                 ),
               ),
             ),
