@@ -114,21 +114,6 @@ Widget build(BuildContext context) {
     // Body utama tidak berubah
     body: _buildBody(), 
       // Tombol bulat untuk berganti-ganti mode tampilan
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          setState(() {
-            if (_currentViewMode == ViewMode.panoramaOnly) {
-              _currentViewMode = ViewMode.panoramaWithPip; // Dari Panorama -> Tambah PiP
-            } else if (_currentViewMode == ViewMode.panoramaWithPip) {
-              _currentViewMode = ViewMode.guidanceOnly; // Dari Panorama+PiP -> Panduan Penuh
-            } else { // _currentViewMode == ViewMode.guidanceOnly
-              _currentViewMode = ViewMode.panoramaOnly; // Dari Panduan Penuh -> Panorama Penuh
-            }
-          });
-        },
-        tooltip: 'Ganti Tampilan',
-        child: _buildFabIcon(), // Ikon akan berubah sesuai mode
-      ),
     );
   }
 
