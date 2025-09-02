@@ -10,6 +10,7 @@ import 'package:flutter_compass/flutter_compass.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'visual_guidance_screen.dart'; // Ini sudah ada, bagus!
+import 'models/place_model.dart'; // Pastikan ini diimpor
 
 // Pastikan Anda memiliki file 'splash_screen.dart' di folder lib/ Anda
 import 'splash_screen.dart';
@@ -148,123 +149,7 @@ class _MatterportViewerScreenState extends State<MatterportViewerScreen> {
 }
 
 // --- Data Tempat dengan Ikon (MODIFIED FOR VISUAL GUIDANCE) ---
-class Place {
-  final String name;
-  final LatLng location;
-  final String panoramaPath;
-  final String? description;
-  final IconData icon;
-  // Ini adalah Map di dalam Map:
-  // Kunci pertama: Nama tempat asal (misalnya "ST. Maria")
-  // Kunci kedua: Nama tempat tujuan (misalnya "IGD")
-  // Nilai: Daftar jalur gambar untuk rute tersebut
-  final Map<String, Map<String, List<String>>>? visualGuidanceRoutes;
 
-  Place({
-    required this.name,
-    required this.location,
-    required this.panoramaPath,
-    this.description,
-    required this.icon,
-    this.visualGuidanceRoutes, // Tambahkan ini di constructor
-  });
-}
-
-// Data 'places' (MODIFIED FOR VISUAL GUIDANCE)
-final Map<String, Place> places = {
-  "ST. Maria": Place(
-      name: "ST. Maria",
-      location: const LatLng(-5.1439286, 119.4085484),
-      panoramaPath: "assets/panorama_demo.jpg",
-      icon: Icons.meeting_room_outlined,
-      visualGuidanceRoutes: {
-        "ST. Maria": {
-          // Asal: ST. Maria
-          "IGD": [
-            // Tujuan: IGD
-            "assets/guidance/st_maria_to_igd_01.webp",
-            "assets/guidance/st_maria_to_igd_02_belok_kanan.webp",
-            "assets/guidance/st_maria_to_igd_03_depan_igd.webp",
-          ],
-          "ST. Joseph": [
-            // Tujuan: ST. Joseph
-            "assets/guidance/st_maria_to_st_joseph_01.webp",
-            "assets/guidance/st_maria_to_st_joseph_02.webp",
-          ],
-        },
-        // Tambahkan rute lain yang BERAKHIR di ST. Maria dan dimulai dari tempat lain,
-        // misal jika Anda ingin panduan visual dari IGD ke ST. Maria:
-        // "IGD": {
-        //   "ST. Maria": [
-        //     "assets/guidance/igd_to_st_maria_01.webp",
-        //     "assets/guidance/igd_to_st_maria_02.webp",
-        //   ],
-        // },
-      }),
-  "ST. Joseph": Place(
-    name: "ST. Joseph",
-    location: const LatLng(-5.1446786, 119.4090680),
-    panoramaPath: "assets/panorama_st_joseph.jpg",
-    icon: Icons.meeting_room_sharp,
-    visualGuidanceRoutes: {
-      "ST. Joseph": {
-        // Asal: ST. Joseph
-        "BERNADETH": [
-          // Tujuan: BERNADETH
-          "assets/guidance/st_joseph_to_bernadeth_01.webp",
-          "assets/guidance/st_joseph_to_bernadeth_02.webp",
-        ],
-        "ST. Maria": [
-          // Tujuan: ST. Maria
-          "assets/guidance/st_joseph_to_st_maria_01.webp",
-          "assets/guidance/st_joseph_to_st_maria_02.webp",
-        ],
-      },
-    },
-  ),
-  "IGD": Place(
-    name: "IGD",
-    location: const LatLng(-5.1437681, 119.4088918),
-    panoramaPath: "assets/panorama_igd.jpg",
-    icon: Icons.emergency_outlined,
-    visualGuidanceRoutes: {
-      "IGD": {
-        // Asal: IGD
-        "ST. Maria": [
-          // Tujuan: ST. Maria
-          "assets/guidance/igd_to_st_maria_01.webp",
-          "assets/guidance/igd_to_st_maria_02.webp",
-        ],
-        "BERNADETH": [
-          // Tujuan: BERNADETH
-          "assets/guidance/igd_to_bernadeth_01.webp",
-          "assets/guidance/igd_to_bernadeth_02.webp",
-        ],
-      },
-    },
-  ),
-  "BERNADETH": Place(
-    name: "BERNADETH",
-    location: const LatLng(-5.144139, 119.40939),
-    panoramaPath: "assets/panorama_bernadeth.jpg",
-    icon: Icons.king_bed_outlined,
-    visualGuidanceRoutes: {
-      "BERNADETH": {
-        // Asal: BERNADETH
-        "ST. Joseph": [
-          // Tujuan: ST. Joseph
-          "assets/guidance/bernadeth_to_st_joseph_01.webp",
-          "assets/guidance/bernadeth_to_st_joseph_02.webp",
-        ],
-        "IGD": [
-          // Tujuan: IGD
-          "assets/guidance/bernadeth_to_igd_01.webp",
-          "assets/guidance/bernadeth_to_igd_02.webp",
-        ],
-      },
-    },
-  ),
-};
 
 // --- Layar Pemindai Kode QR ---
 class QrScannerScreen extends StatefulWidget {
@@ -865,78 +750,70 @@ class _NavigationMapScreenState extends State<NavigationMapScreen>
                     style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.deepPurple),
                   ),
-                  ElevatedButton.icon(
-                    onPressed: () {
-                      const String matterportUrl =
-                          "https://my.matterport.com/show/?m=JGPnGQ6hosj";
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const MatterportViewerScreen(
-                              tourUrl: matterportUrl),
-                        ),
-                      );
-                    },
-                    icon: const Icon(Icons.view_in_ar_outlined, size: 18),
-                    label: const Text("Tur Virtual"),
-                    style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue[800]),
-                  ),
-                  // START: Tombol Panduan Visual Baru
-                  ElevatedButton.icon(
-                    onPressed: () {
-                      if (userLocation == null) {
-                        _showErrorSnackbar("Lokasi Anda belum ditemukan.");
-                        return;
-                      }
-                      if (destinationPlace == null) {
-                        _showErrorSnackbar("Pilih tujuan terlebih dahulu.");
-                        return;
-                      }
+                // --- GANTI DENGAN KODE BARU INI ---
+// START: Tombol Panduan Visual Baru
+ElevatedButton.icon(
+  onPressed: () {
+    // Bagian validasi awal tidak berubah
+    if (userLocation == null) {
+      _showErrorSnackbar("Lokasi Anda belum ditemukan.");
+      return;
+    }
+    if (destinationPlace == null) {
+      _showErrorSnackbar("Pilih tujuan terlebih dahulu.");
+      return;
+    }
+    final String? startPlaceKey = _findNearestPlaceKey(userLocation!);
+    if (startPlaceKey == null) {
+      _showErrorSnackbar("Anda terlalu jauh dari lokasi yang dikenali.");
+      return;
+    }
+    final Place? startPlace = places[startPlaceKey];
+    final Place? destPlace = destinationPlace;
+    if (startPlace == null || destPlace == null) {
+      _showErrorSnackbar("Gagal menentukan lokasi awal atau tujuan.");
+      return;
+    }
 
-                      final String? startPlaceKey =
-                          _findNearestPlaceKey(userLocation!);
-                      if (startPlaceKey == null) {
-                        _showErrorSnackbar(
-                            "Anda terlalu jauh dari lokasi yang dikenali untuk panduan visual.");
-                        return;
-                      }
+    // Ambil data panduan gambar 2D
+    final List<String>? guidanceImages =
+        startPlace.visualGuidanceRoutes?[startPlace.name]
+            ?[destPlace.name];
+            
+    // AMBIL DATA URUTAN PANORAMA
+    final List<String>? panoramaKeys =
+        startPlace.panoramaSequenceRoutes?[startPlace.name]
+            ?[destPlace.name];
 
-                      final Place? startPlace = places[startPlaceKey];
-                      final Place? destPlace = destinationPlace;
-
-                      if (startPlace == null || destPlace == null) {
-                        _showErrorSnackbar(
-                            "Terjadi kesalahan dalam menentukan lokasi awal atau tujuan.");
-                        return;
-                      }
-
-                      // Ambil daftar gambar panduan dari tempat asal ke tempat tujuan
-                      final List<String>? guidanceImages =
-                          startPlace.visualGuidanceRoutes?[startPlace.name]
-                              ?[destPlace.name];
-
-                      if (guidanceImages != null && guidanceImages.isNotEmpty) {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => VisualGuidanceScreen(
-                              imagePaths: guidanceImages,
-                              destinationName: destPlace.name,
-                              startLocationName: startPlace.name,
-                            ),
-                          ),
-                        );
-                      } else {
-                        _showErrorSnackbar(
-                            "Panduan visual tidak tersedia untuk rute dari ${startPlace.name} ke ${destPlace.name}.");
-                      }
-                    },
-                    icon: const Icon(Icons.image_outlined, size: 18),
-                    label: const Text("Panduan Visual"),
-                    style:
-                        ElevatedButton.styleFrom(backgroundColor: Colors.brown),
-                  ),
+    // Cek jika salah satu dari panduan (2D atau 3D) tersedia
+    if ((guidanceImages != null && guidanceImages.isNotEmpty) ||
+        (panoramaKeys != null && panoramaKeys.isNotEmpty)) {
+      
+      // PERBAIKAN PADA NAVIGATOR.PUSH
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => VisualGuidanceScreen(
+            imagePaths: guidanceImages ?? [],
+            destinationName: destPlace.name,
+            startLocationName: startPlace.name,
+            
+            // Tambahkan parameter yang dibutuhkan
+            allPlaces: places,
+            panoramaSequenceKeys: panoramaKeys ?? [],
+          ),
+        ),
+      );
+    } else {
+      _showErrorSnackbar(
+          "Panduan visual atau panorama untuk rute ini tidak tersedia.");
+    }
+  },
+  icon: const Icon(Icons.image_outlined, size: 18),
+  label: const Text("Panduan Visual"),
+  style: ElevatedButton.styleFrom(backgroundColor: Colors.brown),
+),
+// END: Tombol Panduan Visual Baru
                   // END: Tombol Panduan Visual Baru
                 ],
               ),
