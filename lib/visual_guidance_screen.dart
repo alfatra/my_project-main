@@ -147,6 +147,7 @@ Widget build(BuildContext context) {
   // Method untuk membangun UI mode PANORAMA (dengan atau tanpa PiP)
   Widget _buildPanoramaView({required bool showPip}) {
     final bool canGoForward = _currentPanoramaIndex < widget.panoramaSequenceKeys.length - 1;
+    final bool canGoBack = _currentPanoramaIndex > 0;
     final String currentPlaceKey = widget.panoramaSequenceKeys.isNotEmpty 
         ? widget.panoramaSequenceKeys[_currentPanoramaIndex] 
         : "";
@@ -162,6 +163,23 @@ Widget build(BuildContext context) {
         Positioned(top: 15, left: 0, right: 0, child: Center(child: Container(padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8), decoration: BoxDecoration(color: Colors.black.withOpacity(0.7), borderRadius: BorderRadius.circular(20)), child: Text("Anda berada di: ${currentPlace.name}", style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold))))),
         Positioned(bottom: 20, right: 20, child: ElevatedButton.icon(icon: const Icon(Icons.arrow_forward), label: const Text("Maju"), style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).primaryColor, foregroundColor: Colors.white), onPressed: canGoForward ? _nextPanorama : null)),
         
+        Positioned(
+        bottom: 20, left: 20, // Posisikan di kiri bawah
+        child: ElevatedButton.icon(
+          icon: const Icon(Icons.arrow_back),
+          label: const Text("Mundur"),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Theme.of(context).primaryColor,
+            foregroundColor: Colors.white,
+          ),
+          onPressed: canGoBack ? () { // Hanya aktif jika bisa mundur
+            setState(() {
+              _currentPanoramaIndex--;
+              _panoramaKey = UniqueKey(); // Reset panorama
+            });
+          } : null,
+        ),
+      ),
         // Tampilkan widget PiP yang bisa digeser HANYA jika showPip true
         if (showPip)
           Positioned(

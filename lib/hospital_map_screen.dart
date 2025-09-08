@@ -678,7 +678,7 @@ class _NavigationMapScreenState extends State<NavigationMapScreen>
                   labelText: "Pilih Tujuan Anda",
                   prefixIcon: Icon(Icons.flag_outlined),
                 ),
-                initialValue: destinationPlace,
+                value: destinationPlace,
                 isExpanded: true,
                 items: places.entries.map((entry) {
                   final place = entry.value;
