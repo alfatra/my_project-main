@@ -536,16 +536,17 @@ class _NavigationMapScreenState extends State<NavigationMapScreen>
     }
   }
 
-  void _setDestinationAndFetchRoute(Place place) {
-    setState(() {
-      destinationPlace = place;
-      routePoints.clear();
-      _routeDistance = null;
-      _routeDuration = null;
-    });
-    _mapController.move(place.location, 18.0);
-    getRoute();
-  }
+void _setDestinationAndFetchRoute(Place place) {
+  setState(() {
+    destinationPlace = place;
+    // Kosongkan rute lama saat tujuan baru dipilih
+    routePoints.clear(); 
+    _routeDistance = null;
+    _routeDuration = null;
+  });
+  _mapController.move(place.location, 18.0);
+  // getRoute() tidak lagi dipanggil di sini
+}
 
   // Fungsi pembantu untuk menemukan tempat terdekat (NEW)
   String? _findNearestPlaceKey(LatLng currentLatLng) {
@@ -572,96 +573,72 @@ class _NavigationMapScreenState extends State<NavigationMapScreen>
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Navigasi RS STELLA"),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.search),
-            tooltip: "Cari Lokasi",
-            onPressed: _openSearch,
+ @override
+Widget build(BuildContext context) {
+  return Scaffold(
+    appBar: AppBar(
+      title: const Text("Navigasi RS STELLA"),
+      actions: [
+        IconButton(icon: const Icon(Icons.search), tooltip: "Cari Lokasi", onPressed: _openSearch),
+        IconButton(icon: const Icon(Icons.refresh), tooltip: "Reset Navigasi", onPressed: _resetNavigation),
+      ],
+    ),
+    body: Stack(
+      children: [
+        FlutterMap(
+          mapController: _mapController,
+          options: MapOptions(
+            initialCenter: userLocation ?? const LatLng(-5.1450, 119.4095),
+            initialZoom: 17.5,
+            minZoom: 16.0,
+            maxZoom: 20.0,
+            cameraConstraint: CameraConstraint.contain(bounds: mapBounds),
           ),
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            tooltip: "Reset Navigasi",
-            onPressed: _resetNavigation,
-          ),
-        ],
-      ),
-      body: Stack(
-        children: [
-          FlutterMap(
-            mapController: _mapController,
-            options: MapOptions(
-              initialCenter: userLocation ?? const LatLng(-5.1450, 119.4095),
-              initialZoom: 17.5,
-              minZoom: 16.0,
-              maxZoom: 20.0,
-              cameraConstraint: CameraConstraint.contain(bounds: mapBounds),
+          children: [
+            TileLayer(
+              urlTemplate: "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
+              subdomains: const ['a', 'b', 'c', 'd'],
+              userAgentPackageName: 'com.stella.navigasi',
             ),
-            children: [
-              TileLayer(
-                urlTemplate:
-                    "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
-                subdomains: const ['a', 'b', 'c', 'd'],
-                userAgentPackageName: 'com.stella.navigasi',
-              ),
-              if (routePoints.isNotEmpty)
-                PolylineLayer(
-                  polylines: [
-                    Polyline(
-                      points: routePoints,
-                      strokeWidth: 6,
-                      gradientColors: [Colors.tealAccent, Colors.cyan],
-                      borderStrokeWidth: 1,
-                      borderColor: Colors.black.withOpacity(0.2),
-                    ),
-                  ],
-                ),
-              MarkerLayer(
-                markers: [
-                  if (userLocation != null)
-                    Marker(
-                      point: userLocation!,
-                      width: 80,
-                      height: 80,
-                      child:
-                          UserLocationMarker(controller: _userMarkerController),
-                    ),
-                  ...places.entries.map((entry) {
-                    bool isDestination = destinationPlace == entry.value;
-                    return Marker(
-                      point: entry.value.location,
-                      width: 120,
-                      height: 80,
-                      child: DestinationMarker(
-                        place: entry.value,
-                        isDestination: isDestination,
-                        onTap: () {
-                          _setDestinationAndFetchRoute(entry.value);
-                        },
-                      ),
-                    );
-                  }),
-                ],
-              ),
-            ],
-          ),
-          _buildTopControlPanel(),
-          _buildRouteInfoCard(),
-          if (_isLoadingRoute)
-            Container(
-              color: Colors.black.withOpacity(0.3),
-              child: const Center(
-                child: CircularProgressIndicator(),
-              ),
+            if (routePoints.isNotEmpty)
+              PolylineLayer(polylines: [Polyline(points: routePoints, strokeWidth: 6, gradientColors: [Colors.tealAccent, Colors.cyan])]),
+            MarkerLayer(
+              markers: [
+                if (userLocation != null)
+                  Marker(point: userLocation!, width: 80, height: 80, child: UserLocationMarker(controller: _userMarkerController)),
+                ...places.entries.map((entry) {
+                  bool isDestination = destinationPlace == entry.value;
+                  return Marker(
+                    point: entry.value.location,
+                    width: 120,
+                    height: 80,
+                    child: DestinationMarker(place: entry.value, isDestination: isDestination, onTap: () => _setDestinationAndFetchRoute(entry.value)),
+                  );
+                }),
+              ],
             ),
-        ],
-      ),
-    );
-  }
+          ],
+        ),
+        _buildTopControlPanel(),
+        _buildRouteInfoCard(),
+        if (_isLoadingRoute)
+          Container(color: Colors.black.withOpacity(0.3), child: const Center(child: CircularProgressIndicator())),
+      ],
+    ),
 
+    // --- TAMBAHAN BARU: Tombol "Mulai" yang terkondisi ---
+    floatingActionButton: destinationPlace != null && routePoints.isEmpty
+        ? FloatingActionButton.extended(
+            onPressed: getRoute, // Panggil fungsi getRoute saat ditekan
+            label: const Text('Mulai'),
+            icon: const Icon(Icons.navigation_outlined),
+            backgroundColor: Theme.of(context).primaryColor,
+            foregroundColor: Colors.white,
+          )
+        : null, // Sembunyikan tombol jika belum ada tujuan, atau jika rute sudah tampil
+    floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+  );
+}
   Widget _buildTopControlPanel() {
     return Positioned(
       top: 10,
@@ -768,7 +745,8 @@ ElevatedButton.icon(
       _showErrorSnackbar("Anda terlalu jauh dari lokasi yang dikenali.");
       return;
     }
-    final Place? startPlace = places[startPlaceKey];
+    // 'places' sekarang diambil dari file place_model.dart yang di-import
+    final Place? startPlace = places[startPlaceKey]; 
     final Place? destPlace = destinationPlace;
     if (startPlace == null || destPlace == null) {
       _showErrorSnackbar("Gagal menentukan lokasi awal atau tujuan.");
@@ -780,7 +758,7 @@ ElevatedButton.icon(
         startPlace.visualGuidanceRoutes?[startPlace.name]
             ?[destPlace.name];
             
-    // AMBIL DATA URUTAN PANORAMA
+    // Ambil data urutan panorama 3D
     final List<String>? panoramaKeys =
         startPlace.panoramaSequenceRoutes?[startPlace.name]
             ?[destPlace.name];
@@ -789,7 +767,6 @@ ElevatedButton.icon(
     if ((guidanceImages != null && guidanceImages.isNotEmpty) ||
         (panoramaKeys != null && panoramaKeys.isNotEmpty)) {
       
-      // PERBAIKAN PADA NAVIGATOR.PUSH
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -798,7 +775,7 @@ ElevatedButton.icon(
             destinationName: destPlace.name,
             startLocationName: startPlace.name,
             
-            // Tambahkan parameter yang dibutuhkan
+            // Kirim parameter yang dibutuhkan oleh VisualGuidanceScreen versi terbaru
             allPlaces: places,
             panoramaSequenceKeys: panoramaKeys ?? [],
           ),
