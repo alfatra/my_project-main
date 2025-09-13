@@ -31,7 +31,8 @@ final Map<String, Place> places = {
   "ST. Maria": Place(
     name: "ST. Maria",
     location: const LatLng(-5.1439286, 119.4085484),
-    panoramaPath: "assets/panorama/panorama_st_maria.jpg", // Sesuaikan path Anda
+    panoramaPath:
+        "assets/panorama/panorama_st_maria.jpg", // Sesuaikan path Anda
     icon: Icons.meeting_room_outlined,
     visualGuidanceRoutes: {
       "ST. Maria": {
@@ -55,8 +56,8 @@ final Map<String, Place> places = {
     visualGuidanceRoutes: {
       "ST. Joseph": {
         "BERNADETH": [
-          "assets/guidance/st_joseph_to_bernadeth_01.webp",
-          "assets/guidance/st_joseph_to_bernadeth_02.webp",
+          "assets/guidance/st_joseph_to_bernadeth.webp",
+          "assets/guidance/st_joseph_to_bernadeth2.webp",
         ],
         "ST. Maria": [
           "assets/guidance/st_joseph_to_st_maria_01.webp",
@@ -81,7 +82,8 @@ final Map<String, Place> places = {
   "Koridor Antara": Place(
     name: "Koridor Antara",
     location: const LatLng(-5.144400, 119.409200), // Lokasi fiktif
-    panoramaPath: "assets/panorama/panorama_koridor.jpg", // Siapkan gambar panorama untuk ini
+    panoramaPath:
+        "assets/panorama/panorama_koridor.jpg", // Siapkan gambar panorama untuk ini
     icon: Icons.linear_scale,
   ),
 
@@ -106,7 +108,8 @@ final Map<String, Place> places = {
   "BERNADETH": Place(
     name: "BERNADETH",
     location: const LatLng(-5.144139, 119.40939),
-    panoramaPath: "assets/panorama/panorama_bernadeth.jpg", // Sesuaikan path Anda
+    panoramaPath:
+        "assets/panorama/panorama_bernadeth.jpg", // Sesuaikan path Anda
     icon: Icons.king_bed_outlined,
     visualGuidanceRoutes: {
       "BERNADETH": {
