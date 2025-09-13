@@ -4,10 +4,10 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart'; // Pastikan ini diimpor untuk Distance class
 import 'package:dio/dio.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:panorama/panorama.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:flutter_compass/flutter_compass.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:panorama_viewer/panorama_viewer.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'visual_guidance_screen.dart'; // Ini sudah ada, bagus!
 import 'models/place_model.dart'; // Pastikan ini diimpor
@@ -994,7 +994,7 @@ class _PanoramaViewerScreenState extends State<PanoramaViewerScreen> {
       body: Stack(
         fit: StackFit.expand,
         children: [
-          Panorama(
+          PanoramaViewer(
             child: Image.asset(
               widget.currentPlace.panoramaPath,
               fit: BoxFit.cover,

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:panorama/panorama.dart';
+import 'package:panorama_viewer/panorama_viewer.dart';
 import 'models/place_model.dart'; // Pastikan path import ini benar
 
 // Enum untuk mengelola tiga mode tampilan yang berbeda
@@ -159,7 +159,7 @@ Widget build(BuildContext context) {
 
     return Stack(
       children: [
-        Positioned.fill(child: Panorama(key: _panoramaKey, child: Image.asset(currentPlace.panoramaPath, errorBuilder: (c, e, s) => const Center(child: Text("Gagal memuat panorama."))))),
+        Positioned.fill(child: PanoramaViewer(key: _panoramaKey, child: Image.asset(currentPlace.panoramaPath, errorBuilder: (c, e, s) => const Center(child: Text("Gagal memuat panorama."))))),
         Positioned(top: 15, left: 0, right: 0, child: Center(child: Container(padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8), decoration: BoxDecoration(color: Colors.black.withOpacity(0.7), borderRadius: BorderRadius.circular(20)), child: Text("Anda berada di: ${currentPlace.name}", style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold))))),
         Positioned(bottom: 20, right: 20, child: ElevatedButton.icon(icon: const Icon(Icons.arrow_forward), label: const Text("Maju"), style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).primaryColor, foregroundColor: Colors.white), onPressed: canGoForward ? _nextPanorama : null)),
         

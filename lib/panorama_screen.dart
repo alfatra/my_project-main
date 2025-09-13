@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:panorama/panorama.dart';
+import 'package:panorama_viewer/panorama_viewer.dart';
 
 class PanoramaScreen extends StatelessWidget {
   const PanoramaScreen({super.key});
@@ -8,7 +8,7 @@ class PanoramaScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text("Panorama 360°")),
-      body: Panorama(
+      body: PanoramaViewer (
         child: Image.asset('assets/panorama.jpg'), // Ganti dengan path gambar panorama kamu
       ),
     );

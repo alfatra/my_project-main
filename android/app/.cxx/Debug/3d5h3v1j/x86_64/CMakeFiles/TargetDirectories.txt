@@ -1,0 +1,2 @@
+D:/SourceCode/WORKS/Stella-Maris/my_project/android/app/.cxx/Debug/3d5h3v1j/x86_64/CMakeFiles/edit_cache.dir
+D:/SourceCode/WORKS/Stella-Maris/my_project/android/app/.cxx/Debug/3d5h3v1j/x86_64/CMakeFiles/rebuild_cache.dir
