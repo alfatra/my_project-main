@@ -16,7 +16,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
         useMaterial3: true,
       ),
-      home: SplashScreen(), // HALAMAN AWAL
+      home: const SplashScreen(), // HALAMAN AWAL
     );
   }
 }

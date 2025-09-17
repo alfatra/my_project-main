@@ -21,6 +21,7 @@ dependencies:
   flutter_compass: ^0.8.0
   mobile_scanner: ^5.1.1
   webview_flutter: ^4.8.0
+  video_player: ^2.8.6
   http: ^1.2.1
   cupertino_icons: ^1.0.6
   pathfinding: ^3.0.1
@@ -36,3 +37,4 @@ flutter:
     - assets/
     - assets/guidance/
     - assets/panorama/
+    - assets/video/
